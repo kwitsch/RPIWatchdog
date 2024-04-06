@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"log"
 	"os"
 	"os/signal"
@@ -19,10 +20,16 @@ func main() {
 		os.Exit(1)
 	}
 
+	_, err = os.Stat(cfg.DevicePath)
+	if errors.Is(err, os.ErrNotExist) {
+		log.Fatal("Configured watchdog device does not exist")
+		os.Exit(2)
+	}
+
 	wd, err := watchdog.Open(cfg.DevicePath)
 	if err != nil {
 		log.Printf("Error opening watchdog: %v", err)
-		os.Exit(2)
+		os.Exit(3)
 	}
 	defer wd.Close()
 
