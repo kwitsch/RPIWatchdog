@@ -15,7 +15,7 @@ RUN --mount=type=bind,target=. \
   chown 1000 /tmp/watchdog
 
 FROM scratch
-
+WORKDIR /var/run
 WORKDIR /app
 USER 1000
 
