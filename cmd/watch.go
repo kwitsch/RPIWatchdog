@@ -24,6 +24,7 @@ const (
 // Watch starts the RPIWatchdog service
 func Watch(ctx context.Context) int {
 	logger.Log("Start RPIWatchdog service")
+	logger.LogVerbose("----------------------------------------------")
 
 	cfg, res := config.GetConfig()
 	if res != 0 {

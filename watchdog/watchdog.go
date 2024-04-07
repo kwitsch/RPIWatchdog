@@ -48,16 +48,18 @@ func NewWatchdog(withoutWatchdog bool) (Watchdog, int) {
 	}
 	res.wdDevice = wd
 
-	logger.LogVerbose("Watchdog driver: %s", wd.Identity)
-
 	timeout, err := wd.Timeout()
 	if err != nil {
 		logger.Log("Error getting watchdog timeout: %v", err)
 		wd.Close()
 		return res, watchdogOpenErrorExit
 	}
-	logger.LogVerbose("Watchdog timeout: %v", timeout)
 	res.timeout = timeout
+
+	logger.LogVerbose("Watchdog:")
+	logger.LogVerbose(" - Driver: %s", wd.Identity)
+	logger.LogVerbose(" - Timeout: %v", timeout)
+	logger.LogVerbose("----------------------------------------------")
 
 	return res, 0
 }
