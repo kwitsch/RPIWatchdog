@@ -29,7 +29,9 @@ func NewHealthCheckServer(serveHealthSource bool, writeTimeout int) (HealthCheck
 	}
 
 	// Create the unix socket
-	unixSocket, err := net.Listen("unix", sockPath)
+	lcfg := net.ListenConfig{}
+	unixSocket, err := lcfg.Listen(context.Background(), "unix", sockPath)
+	// unixSocket, err := net.Listen("unix", sockPath)
 	if err != nil {
 		return res, err
 	}

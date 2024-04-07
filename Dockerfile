@@ -13,10 +13,11 @@ RUN --mount=type=bind,target=. \
   --mount=type=cache,target=/go/pkg \
   mkdir -p /app && \
   go build -v -ldflags="-w -s" -o /app/rpiwatchdog && \
+  setcap 'cap_net_bind_service=+ep' /app/rpiwatchdog && \
   chown 1000 -R /app
 
 FROM scratch AS final
-USER 1000
+# USER 1000
 
 COPY --link --from=build /app /app
 
