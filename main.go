@@ -5,6 +5,7 @@ import (
 	_ "time/tzdata"
 
 	"github.com/kwitsch/RPIWatchdog/cmd"
+	"github.com/kwitsch/RPIWatchdog/logger"
 
 	reaper "github.com/ramr/go-reaper"
 )
@@ -19,5 +20,9 @@ func main() {
 		option = os.Args[1]
 	}
 
-	os.Exit(cmd.Run(option))
+	exitCode := cmd.Run(option)
+
+	logger.LogVerbose("Exit code: %d", exitCode)
+
+	os.Exit(exitCode)
 }

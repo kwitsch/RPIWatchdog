@@ -8,6 +8,10 @@
     "ghcr.io/devcontainers-contrib/features/prettier:1": {}
   },
   "postCreateCommand": "sudo mkdir -p /app && sudo chown vscode /app",
+  "remoteEnv": {
+    "RPIW_VERBOSELOGGING": "true",
+    "RPIW_WITHOUTWATCHDOG": "true"
+  },
   "customizations": {
     "vscode": {
       "extensions": [

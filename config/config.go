@@ -27,6 +27,10 @@ type Config struct {
 	HealthCheckInterval int `koanf:"healthcheckinterval" default:"30"`
 	// HealthCheckTimeout is the timeout in seconds to check the health source
 	HealthCheckTimeout int `koanf:"healthchecktimeout" default:"3"`
+	// WithoutWatchdog is the flag to disable the watchdog device
+	// If it is true, the watchdog device will not be opened
+	// This flag is only for testing purposes
+	WithoutWatchdog bool `koanf:"withoutwatchdog" default:"false"`
 }
 
 // GetConfig returns the configuration for the watchdog container according to the environment variables and
@@ -40,5 +44,19 @@ func GetConfig() (Config, int) {
 
 	logger.SetVerbose(res.VerboseLogging)
 
+	logConfig(res)
+
 	return res, 0
+}
+
+func logConfig(cfg Config) {
+	logger.LogVerbose("Configuration:")
+	logger.LogVerbose(" - DevicePath: %s", cfg.DevicePath)
+	logger.LogVerbose(" - ServeHealthSource: %t", cfg.ServeHealthSource)
+	logger.LogVerbose(" - UseHealthSource: %s", cfg.UseHealthSource)
+	logger.LogVerbose(" - VerboseLogging: %t", cfg.VerboseLogging)
+	logger.LogVerbose(" - HealthCheckInterval: %d", cfg.HealthCheckInterval)
+	logger.LogVerbose(" - HealthCheckTimeout: %d", cfg.HealthCheckTimeout)
+	logger.LogVerbose(" - WithoutWatchdog: %t", cfg.WithoutWatchdog)
+	logger.LogVerbose("----------------------------------------------")
 }

@@ -20,7 +20,10 @@ const (
 	watchdogKeepAliveErrorExit       = 9
 )
 
+// Watch starts the RPIWatchdog service
 func Watch(ctx context.Context) int {
+	logger.Log("Start RPIWatchdog service")
+
 	cfg, res := config.GetConfig()
 	if res != 0 {
 		logger.Log("Error reading config")
@@ -45,11 +48,15 @@ func Watch(ctx context.Context) int {
 	defer ticker.Stop()
 
 	// Open the watchdog device and exit with the corresponding error code(2|3) if an error occurs
-	wd, rcode := watchdog.Open(cfg.DevicePath)
+	wd, rcode := watchdog.NewWatchdog(cfg.DevicePath, cfg.WithoutWatchdog)
 	if rcode != 0 {
 		return watchdogCreateErrorExit
 	}
 	defer wd.Close()
+
+	if res := checkHealth(ctx, cfg, &wd); res != 0 {
+		return res
+	}
 
 	for {
 		select {
@@ -58,21 +65,36 @@ func Watch(ctx context.Context) int {
 			return contextDoneExit
 		case <-intChan:
 			logger.LogVerbose("Interrupt signal received")
+			wd.Disable()
 			return 0
 		case err = <-srv.Err():
 			logger.Log("Error serving health check: %v", err)
 			return healthCheckServerRunErrorExit
 		case <-ticker.C:
-			logger.LogVerbose("Health check")
-			if err := healthcheck.TCPHealthCheck(ctx, cfg.UseHealthSource, cfg.HealthCheckTimeout); err != nil {
-				logger.LogVerbose("Health check for %s was failed: %v", cfg.UseHealthSource, err)
-			} else {
-				logger.LogVerbose("Health check for %s was successful", cfg.UseHealthSource)
-				if err := wd.KeepAlive(); err != nil {
-					logger.Log("Error keeping watchdog alive: %v", err)
-					return watchdogKeepAliveErrorExit
-				}
+			if res := checkHealth(ctx, cfg, &wd); res != 0 {
+				return res
 			}
 		}
 	}
+}
+
+func checkHealth(ctx context.Context, cfg config.Config, wd *watchdog.Watchdog) int {
+	logger.LogVerbose("Health check")
+
+	logSource := cfg.DevicePath
+	if cfg.UseHealthSource != "" {
+		logSource = cfg.UseHealthSource
+	}
+
+	if err := healthcheck.TCPHealthCheck(ctx, cfg.UseHealthSource, cfg.HealthCheckTimeout); err != nil {
+		logger.LogVerbose(" - failed for %s with: %v", logSource, err)
+	} else {
+		logger.LogVerbose(" - was successful for %s", logSource)
+		if err := wd.KeepAlive(); err != nil {
+			logger.Log("Error keeping watchdog alive: %v", err)
+			return watchdogKeepAliveErrorExit
+		}
+	}
+
+	return 0
 }
