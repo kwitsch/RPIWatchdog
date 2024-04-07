@@ -18,7 +18,7 @@ RUN --mount=type=bind,target=. \
   chown 1000 -R /app
 
 FROM scratch AS final
-USER 1000
+# USER 1000
 
 COPY --link --from=build /app /app
 
