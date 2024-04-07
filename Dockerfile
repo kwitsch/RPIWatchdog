@@ -12,13 +12,14 @@ RUN --mount=type=bind,target=. \
   --mount=type=cache,target=/root/.cache/go-build \ 
   --mount=type=cache,target=/go/pkg \
   go build -v -ldflags="-w -s" -o /tmp/watchdog && \
-  chown 1000 /tmp/watchdog
+  chown 1000 /tmp/rpiwatchdog
 
 FROM scratch
 WORKDIR /var/run
 WORKDIR /app
 USER 1000
 
-COPY --link --from=build /tmp/watchdog /app/watchdog
+COPY --link --from=build /tmp/rpiwatchdog /app/rpiwatchdog
 
-ENTRYPOINT [ "/app/watchdog" ]
+ENTRYPOINT [ "/app/rpiwatchdog" ]
+CMD [ "watch" ]

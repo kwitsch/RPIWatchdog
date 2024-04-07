@@ -14,7 +14,31 @@ import (
 	_ "github.com/kwitsch/go-dockerutils"
 )
 
+const (
+	optionWatch       = "watch"
+	optionHealthcheck = "healthcheck"
+	optionSourcecheck = "sourcecheck"
+	wrongOptionExit   = 1
+)
+
 func main() {
+	if len(os.Args) != 2 {
+		log.Fatal("Invalid number of arguments")
+		help()
+		os.Exit(wrongOptionExit)
+	}
+	switch os.Args[1] {
+	case optionWatch:
+		// todo
+	case optionHealthcheck:
+		// todo
+	case optionSourcecheck:
+	// todo
+	default:
+		log.Fatalf("Invalid option: %s", os.Args[1])
+		help()
+		os.Exit(wrongOptionExit)
+	}
 	// Get the configuration and exit with 1 if an error occurs
 	cfg, err := config.GetConfig()
 	if err != nil {
@@ -29,7 +53,7 @@ func main() {
 	// }
 	// defer wd.Close()
 
-	srv, err := healthcheck.NewHealthCheckServer(cfg.ExposeHealth)
+	srv, err := healthcheck.NewHealthCheckServer(cfg.ServeHealthSource)
 	if err != nil {
 		log.Printf("Error creating health check server: %v", err)
 		os.Exit(5)
@@ -68,4 +92,12 @@ func main() {
 			// }
 		}
 	}
+}
+
+func help() {
+	log.Println("Usage: rpiwatchdog [option]")
+	log.Println("Options:")
+	log.Printf("\t- %s : Activates the watchdog device and maintains it's state acording to the source health\n", optionWatch)
+	log.Printf("\t- %s : Check the health of the service\n", optionHealthcheck)
+	log.Printf("\t- %s : Check the health of the source server\n", optionSourcecheck)
 }

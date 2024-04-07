@@ -11,10 +11,11 @@ const prefix = "RPIW_"
 type Config struct {
 	// DevicePath is the path to the watchdog device to use
 	DevicePath string `koanf:"devicepath" default:"/dev/watchdog"`
-	// ExposeHealth determines if the health endpoint should be exposed on port 1111
-	ExposeHealth bool `koanf:"exposehealth" default:"false"`
-	// UseHealthFrom is the hostname and port to use for the health endpoint(if empty, the internal health endpoint is used)
-	UseHealthFrom string `koanf:"usehealthfrom" default:""`
+	// ServeHealthSource determines if the health endpoint should be exposed on port 1111
+	ServeHealthSource bool `koanf:"servehealthsource" default:"false"`
+	// UseHealthSource is the hostname and port to use as the health source
+	// If it is empty, the health source will be the internal unix socket
+	UseHealthSource string `koanf:"usehealthsource" default:""`
 }
 
 // GetConfig returns the configuration for the watchdog container according to the environment variables and
