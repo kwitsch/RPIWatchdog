@@ -10,14 +10,17 @@ import (
 
 // HealthCheckServer is the server for the health checks on unix and tcp sockets
 type HealthCheckServer struct {
-	unixSocket net.Listener
-	tcpSocket  net.Listener
-	errCh      chan error
+	unixSocket   net.Listener
+	tcpSocket    net.Listener
+	errCh        chan error
+	writeTimeout int
 }
 
-func NewHealthCheckServer(exposehealth bool) (HealthCheckServer, error) {
+// NewHealthCheckServer creates a new health check server
+func NewHealthCheckServer(serveHealthSource bool, writeTimeout int) (HealthCheckServer, error) {
 	res := HealthCheckServer{
-		errCh: make(chan error, 1),
+		errCh:        make(chan error, 1),
+		writeTimeout: writeTimeout,
 	}
 
 	// Remove the unix socket if it already exists
@@ -33,7 +36,7 @@ func NewHealthCheckServer(exposehealth bool) (HealthCheckServer, error) {
 	res.unixSocket = unixSocket
 
 	// Create the tcp socket if exposehealth is set to true
-	if exposehealth {
+	if serveHealthSource {
 		tcpSocket, err := net.Listen("tcp", fmt.Sprintf(":%d", tcpPort))
 		if err != nil {
 			res.unixSocket.Close()
@@ -111,7 +114,7 @@ func (h *HealthCheckServer) handleConnection(ctx context.Context, conn net.Conn)
 	case <-ctx.Done():
 		return
 	default:
-		if err := conn.SetWriteDeadline(time.Now().Add(2 * time.Second)); err != nil {
+		if err := conn.SetWriteDeadline(time.Now().Add(time.Duration(h.writeTimeout) * time.Second)); err != nil {
 			h.errCh <- err
 			return
 		}

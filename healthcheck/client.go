@@ -7,28 +7,31 @@ import (
 	"time"
 )
 
-func UnixHealthCheck(ctx context.Context) error {
+// UnixHealthCheck checks the health through the unix socket
+func UnixHealthCheck(ctx context.Context, timeout int) error {
 	conn, err := net.Dial("unix", sockPath)
 	if err != nil {
 		return err
 	}
 
-	return healthcheck(ctx, conn)
+	return healthcheck(ctx, conn, timeout)
 }
 
-func TCPHealthCheck(ctx context.Context, source string) error {
+// TCPHealthCheck checks the health through the tcp health source if it is not empty, otherwise through the unix socket
+func TCPHealthCheck(ctx context.Context, source string, timeout int) error {
 	if source == "" {
-		return UnixHealthCheck(ctx)
+		return UnixHealthCheck(ctx, timeout)
 	}
 	conn, err := net.Dial("tcp", source)
 	if err != nil {
 		return err
 	}
 
-	return healthcheck(ctx, conn)
+	return healthcheck(ctx, conn, timeout)
 }
 
-func healthcheck(ctx context.Context, conn net.Conn) error {
+// healthcheck checks the health of the connection
+func healthcheck(ctx context.Context, conn net.Conn, timeout int) error {
 	defer conn.Close()
 	if err := ctx.Err(); err != nil {
 		return err
@@ -37,7 +40,7 @@ func healthcheck(ctx context.Context, conn net.Conn) error {
 	case <-ctx.Done():
 		return ctx.Err()
 	default:
-		if err := conn.SetReadDeadline(time.Now().Add(3 * time.Second)); err != nil {
+		if err := conn.SetReadDeadline(time.Now().Add(time.Second * time.Duration(timeout))); err != nil {
 			return err
 		}
 		buf := make([]byte, 2)
