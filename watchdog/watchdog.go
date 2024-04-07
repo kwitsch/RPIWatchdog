@@ -3,24 +3,28 @@ package watchdog
 import (
 	"errors"
 	"os"
+	"time"
 
 	"github.com/kwitsch/RPIWatchdog/logger"
-	wd "github.com/u-root/u-root/pkg/watchdog"
+	wd "github.com/mdlayher/watchdog"
 )
 
 const (
-	deviceDoesNotExistExit = 10
-	watchdogOpenErrorExit  = 11
+	DevicePath             = "/dev/watchdog"
+	defaultTimeout         = 30 * time.Second
+	deviceDoesNotExistExit = 11
+	watchdogOpenErrorExit  = 12
 )
 
 type Watchdog struct {
-	wdDevice        *wd.Watchdog
+	wdDevice        *wd.Device
 	withoutWatchdog bool
+	timeout         time.Duration
 }
 
 // NewWatchdog creates a new watchdog instance and returns it
 // If the watchdog device does not exist or can't be opened, it returns an exit code
-func NewWatchdog(devicePath string, withoutWatchdog bool) (Watchdog, int) {
+func NewWatchdog(withoutWatchdog bool) (Watchdog, int) {
 	res := Watchdog{
 		withoutWatchdog: withoutWatchdog,
 	}
@@ -32,30 +36,50 @@ func NewWatchdog(devicePath string, withoutWatchdog bool) (Watchdog, int) {
 		return res, 0
 	}
 
-	if _, err := os.Stat(devicePath); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(DevicePath); errors.Is(err, os.ErrNotExist) {
 		logger.Log("Configured watchdog device does not exist")
 		return res, deviceDoesNotExistExit
 	}
 
-	wd, err := wd.Open(devicePath)
+	wd, err := wd.Open()
 	if err != nil {
 		logger.Log("Error opening watchdog: %v", err)
 		return res, watchdogOpenErrorExit
 	}
 	res.wdDevice = wd
 
+	logger.LogVerbose("Watchdog driver: %s", wd.Identity)
+
+	timeout, err := wd.Timeout()
+	if err != nil {
+		logger.Log("Error getting watchdog timeout: %v", err)
+		wd.Close()
+		return res, watchdogOpenErrorExit
+	}
+	logger.LogVerbose("Watchdog timeout: %v", timeout)
+	res.timeout = timeout
+
 	return res, 0
 }
 
-// KeepAlive sends a keep alive signal to the watchdog device
-func (w *Watchdog) KeepAlive() error {
+// Timeout returns the timeout of the watchdog device
+func (w *Watchdog) Timeout() time.Duration {
+	if w.withoutWatchdog {
+		return defaultTimeout
+	}
+
+	return w.timeout
+}
+
+// Ping sends a keep alive signal to the watchdog device
+func (w *Watchdog) Ping() error {
 	if w.withoutWatchdog {
 		logger.Log("! Watchdog is disabled ! - keep alive not called")
 		return nil
 	}
 
 	logger.LogVerbose("Watchdog - keep alive called")
-	return w.wdDevice.KeepAlive()
+	return w.wdDevice.Ping()
 }
 
 // Close closes the watchdog device
@@ -67,15 +91,4 @@ func (w *Watchdog) Close() error {
 
 	logger.LogVerbose("Watchdog - close called")
 	return w.wdDevice.Close()
-}
-
-// Disable disables the watchdog device
-func (w *Watchdog) Disable() error {
-	if w.withoutWatchdog {
-		logger.Log("! Watchdog is disabled ! - disable not called")
-		return nil
-	}
-
-	logger.LogVerbose("Watchdog - disable called")
-	return w.wdDevice.MagicClose()
 }

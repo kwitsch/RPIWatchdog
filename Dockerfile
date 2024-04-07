@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM --platform=$BUILDPLATFORM ghcr.io/kwitsch/ziggoimg AS build
+FROM --platform=$BUILDPLATFORM ghcr.io/kwitsch/ziggoimg:dev AS build
 
 RUN --mount=type=bind,source=go.sum,target=go.sum \
   --mount=type=bind,source=go.mod,target=go.mod \
@@ -14,6 +14,7 @@ RUN --mount=type=bind,target=. \
   mkdir -p /app && \
   go build -v -ldflags="-w -s" -o /app/rpiwatchdog && \
   setcap 'cap_net_bind_service=+ep' /app/rpiwatchdog && \
+  chmod a+x /app && \
   chown 1000 -R /app
 
 FROM scratch AS final
@@ -25,11 +26,9 @@ COPY --link --from=build /app /app
 EXPOSE 1111
 
 
-ENV RPIW_DEVICEPATH=/dev/watchdog \
-  RPIW_SERVEHEALTHSOURCE=false \
+ENV RPIW_SERVEHEALTHSOURCE=false \
   RPIW_USEHEALTHSOURCE= \
   RPIW_VERBOSELOGGING=false \
-  RPIW_HEALTHCHECKINTERVAL=30 \
   RPIW_HEALTHCHECKTIMEOUT=3 
 
 ENTRYPOINT [ "/app/rpiwatchdog" ]
