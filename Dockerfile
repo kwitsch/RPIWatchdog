@@ -11,7 +11,7 @@ RUN --mount=type=bind,source=go.sum,target=go.sum \
 RUN --mount=type=bind,target=. \
   --mount=type=cache,target=/root/.cache/go-build \ 
   --mount=type=cache,target=/go/pkg \
-  go build -v -ldflags="-w -s" -o /tmp/watchdog && \
+  go build -v -ldflags="-w -s" -o /tmp/rpiwatchdog && \
   chown 1000 /tmp/rpiwatchdog
 
 FROM scratch AS final
