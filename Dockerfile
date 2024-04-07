@@ -15,8 +15,8 @@ RUN --mount=type=bind,target=. \
   chown 1000 /tmp/rpiwatchdog
 
 FROM scratch AS final
-WORKDIR /app
 USER 1000
+WORKDIR /app
 
 COPY --link --from=build /tmp/rpiwatchdog /app/rpiwatchdog
 
