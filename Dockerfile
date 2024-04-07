@@ -11,14 +11,14 @@ RUN --mount=type=bind,source=go.sum,target=go.sum \
 RUN --mount=type=bind,target=. \
   --mount=type=cache,target=/root/.cache/go-build \ 
   --mount=type=cache,target=/go/pkg \
-  go build -v -ldflags="-w -s" -o /tmp/rpiwatchdog && \
-  chown 1000 /tmp/rpiwatchdog
+  mkdir -p /app && \
+  go build -v -ldflags="-w -s" -o /app/rpiwatchdog && \
+  chown 1000 -R /app
 
 FROM scratch AS final
 USER 1000
-WORKDIR /app
 
-COPY --link --from=build /tmp/rpiwatchdog /app/rpiwatchdog
+COPY --link --from=build /app /app
 
 # Port 1111 is only used if RPIW_SERVEHEALTHSOURCE is set to true
 EXPOSE 1111
