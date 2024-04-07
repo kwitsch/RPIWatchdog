@@ -31,8 +31,6 @@ func Watch(ctx context.Context) int {
 		return res
 	}
 
-	logger.LogVerbose("----------------------------------------------")
-
 	srv, err := healthcheck.NewHealthCheckServer(cfg.ServeHealthSource, cfg.HealthCheckTimeout)
 	if err != nil {
 		logger.Log("Error creating health check server: %v", err)

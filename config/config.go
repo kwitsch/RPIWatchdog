@@ -46,6 +46,7 @@ func GetConfig() (Config, int) {
 }
 
 func logConfig(cfg Config) {
+	logger.LogVerbose("----------------------------------------------")
 	logger.LogVerbose("Configuration:")
 	logger.LogVerbose(" - ServeHealthSource: %t", cfg.ServeHealthSource)
 	logger.LogVerbose(" - UseHealthSource: %s", cfg.UseHealthSource)

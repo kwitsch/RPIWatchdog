@@ -12,15 +12,12 @@ RUN --mount=type=bind,target=. \
   --mount=type=cache,target=/root/.cache/go-build \ 
   --mount=type=cache,target=/go/pkg \
   mkdir -p /app && \
-  go build -v -ldflags="-w -s" -o /app/rpiwatchdog && \
-  setcap 'cap_net_bind_service=+ep' /app/rpiwatchdog && \
-  chmod a+x /app && \
-  chown 1000 -R /app
+  go build -v -ldflags="-w -s" -o /app/rpiwatchdog
 
 FROM scratch AS final
-# USER 1000
+USER 1000
 
-COPY --link --from=build /app /app
+COPY --link --from=build --chown=1000:1000 --chmod=755  /app /app
 
 # Port 1111 is only used if RPIW_SERVEHEALTHSOURCE is set to true
 EXPOSE 1111
