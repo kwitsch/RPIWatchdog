@@ -12,7 +12,9 @@ RUN --mount=type=bind,target=. \
   --mount=type=cache,target=/root/.cache/go-build \ 
   --mount=type=cache,target=/go/pkg \
   mkdir -p /app && \
-  go build -v -ldflags="-w -s" -o /app/rpiwatchdog
+  go build -v -ldflags="-w -s" -o /app/rpiwatchdog && \
+  chown 1000:1000 /app/rpiwatchdog && \
+  chmod +x /app/rpiwatchdog
 
 FROM scratch AS final
 USER 1000
