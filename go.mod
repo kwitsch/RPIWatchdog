@@ -1,6 +1,6 @@
 module github.com/kwitsch/RPIWatchdog
 
-go 1.22.2
+go 1.22.1
 
 require github.com/kwitsch/go-dockerutils v0.0.9
 
