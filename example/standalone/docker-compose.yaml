@@ -1,0 +1,9 @@
+services:
+  watchdog:
+    image: ghcr.io/kwitsch/rpiwatchdog:dev
+    network_mode: none
+    restart: unless-stopped
+    devices:
+      - /dev/watchdog:/dev/watchdog:rwm
+    environment:
+      - RPIW_VERBOSELOGGING=true
