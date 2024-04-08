@@ -50,7 +50,7 @@ func Watch(ctx context.Context) int {
 		return watchdogCreateErrorExit
 	}
 
-	// alive ping every 1/4 of the device timeout
+	// alive ping 4 times during the device timeout
 	ticker := time.NewTicker(wd.Timeout() / 4)
 	defer ticker.Stop()
 
